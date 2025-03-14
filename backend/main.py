@@ -28,7 +28,7 @@ db = SQLAlchemy(app)
 @app.route('/test-db')
 def test_db():
     try:
-        db.session.execute("SELECT 1")
+        db.session.execute(text("SELECT 1"))
         return "Database Connected!", 200
     except Exception as e:
         return str(e), 500
