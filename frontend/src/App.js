@@ -1,11 +1,29 @@
 import { useEffect, useState } from "react";
-import { Chart as Chartjs } from "chart.js/auto";
 import { Line } from "react-chartjs-2";
-
-
-
-
 import "./App.css";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    BarElement
+} from "chart.js";
+
+// Register them
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    BarElement
+);
 
 
 function App() {
