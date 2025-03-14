@@ -7,23 +7,31 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import text
 
-# Load environment variables from .env file
-load_dotenv(dotenv_path="sp78.env")
+# Load environment variables from Railway (if running in Railway)
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Configure database connection
+# Configure database connection using Railway MySQL
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://{}:{}@{}/{}'.format(
-    os.environ.get('DB_USERNAME', 'default_user'),
-    os.environ.get('DB_PASSWORD', ''),
-    os.environ.get('DB_HOST', 'localhost'),
-    os.environ.get('DB_NAME', 'mydatabase')
+    os.getenv('DB_USERNAME'),
+    os.getenv('DB_PASSWORD'),
+    os.getenv('DB_HOST'),
+    os.getenv('DB_NAME')
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+
+@app.route('/test-db')
+def test_db():
+    try:
+        db.session.execute("SELECT 1")
+        return "Database Connected!", 200
+    except Exception as e:
+        return str(e), 500
 
 # Fetch all stock data
 @app.route('/stocks')
