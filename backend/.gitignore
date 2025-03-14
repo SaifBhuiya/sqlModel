@@ -1,0 +1,16 @@
+# Ignore specific files (e.g., environment file)
+sp78.env
+
+# Ignore Python bytecode files
+*.pyc
+*.pyo
+
+# Ignore virtual environment folders
+venv/
+env/
+
+# Ignore log files
+*.log
+
+# Ignore any database files
+*.sqlite
