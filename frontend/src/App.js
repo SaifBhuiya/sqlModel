@@ -33,7 +33,7 @@ function App() {
     //dropdown menu
     useEffect(() => {
         const fetchTradeCodes = () => {
-            fetch("http://127.0.0.1:5000/get_trade_codes")
+            fetch("https://sqlmodel-production.up.railway.app/get_trade_codes")
                 .then((response) => response.json())
                 .then((data) => setTradeCodes(data))
                 .catch((error) => console.error("Error fetching trade codes:", error));
@@ -48,7 +48,7 @@ function App() {
   
 
     useEffect(() => {
-        fetch("http://127.0.0.1:5000/stocks")  // Get Data from Flask backend
+        fetch("https://sqlmodel-production.up.railway.app/stocks")  // Get Data from Flask backend
             .then(response => response.json())
             .then(data => {
                 setData(data)           //Load to display
@@ -58,7 +58,7 @@ function App() {
     }, []);
 
     useEffect(() => {
-        fetch("http://127.0.0.1:5000/stocksforGraph")  // Get Data from Flask backend for chart
+        fetch("https://sqlmodel-production.up.railway.app/stocksforGraph")  // Get Data from Flask backend for chart
             .then(response => response.json())
             .then(data => {
                 setChartdata(data)           //Load chart data
@@ -69,7 +69,7 @@ function App() {
 
     const sendDataToFlask = async () => {
         
-        fetch("http://127.0.0.1:5000/stocksforGraph")
+        fetch("https://sqlmodel-production.up.railway.app/stocksforGraph")
             .then(response => response.json())
             .then(data => {
                 setChartdata(data)           //Load chart data
@@ -101,7 +101,7 @@ function App() {
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this?")) {
-            fetch(`http://127.0.0.1:5000/Delete?id=${id}`, {
+            fetch(`https://sqlmodel-production.up.railway.app/Delete?id=${id}`, {
                 method: "DELETE"
             })
                 .then(response => response.json())  // Process the API response
@@ -135,7 +135,7 @@ function App() {
             volume: volume
         };
 
-        fetch("http://127.0.0.1:5000/Create", {
+        fetch("https://sqlmodel-production.up.railway.app/Create", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -188,7 +188,7 @@ function App() {
        
 
         //call API to handle the update
-        fetch("http://127.0.0.1:5000/Edit", {
+        fetch("https://sqlmodel-production.up.railway.app/Edit", {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
