@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Chart as Chartjs } from "chart.js/auto";
 import { Line } from "react-chartjs-2";
 
 
