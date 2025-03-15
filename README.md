@@ -8,6 +8,6 @@ The intial data set didnt have a unique value to be used as primary key and I th
 
 All the phases of development did help me learn more about the API calls. I learned a lot about get, put, post and delete. Connecting SQL with python was confusing at first but then I got used to it. One error that kept popping up was CORS. I looked up a few things about it and the first impression was that it was a permission problem which was solved by including a library in the code. But then this kept popping even when I had the thing settled. Then I realized, incorrect code was also causing this. So then I started writing my code in sections and testing them before going to the next section.
 
-On the ReactJs side of things, this project helped me understand how keywords like async, fetch, .then etc work. 
+On the ReactJs side of things, this project helped me understand how keywords like async, fetch, .then etc work.
 
 The hardest part however was actually looking for a cloud service to host these. Took me a long time to find something that works and then configuring files to make them work. But finally I got that to work too.
