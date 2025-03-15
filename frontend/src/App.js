@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Line } from "react-chartjs-2";
+import { Line, Bar } from "react-chartjs-2";
 import "./App.css";
 import {
     Chart as ChartJS,
@@ -10,29 +10,20 @@ import {
     Title,
     Tooltip,
     Legend,
-    BarElement,
-    CandlestickController,
-    CandlestickElement,
-    OhlcController,
-    OhlcElement
+    BarElement
 } from "chart.js";
 
-// Register components
+// Register Chart.js components
 ChartJS.register(
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
-    BarElement,
     Title,
     Tooltip,
     Legend,
-    CandlestickController,
-    CandlestickElement,
-    OhlcController,
-    OhlcElement
+    BarElement
 );
-
 
 function App() {
     //SQL Data 
@@ -297,34 +288,114 @@ function App() {
         ],
     };
 
-    // Candlestick chart configuration
-    const candlestickData = {
-        labels: filteredData.map((item) => item.date),
-        datasets: [
-            {
-                label: 'OHLC',
-                data: filteredData.map((item) => ({
-                    o: parseFloat(item.open),
-                    h: parseFloat(item.high),
-                    l: parseFloat(item.low),
-                    c: parseFloat(item.close)
-                })),
-                color: {
-                    up: 'rgba(38, 166, 154, 1)',
-                    down: 'rgba(239, 83, 80, 1)',
-                    unchanged: 'rgba(156, 39, 176, 1)',
-                },
-                yAxisID: "y1",
-            },
-            {
-                label: "Volume",
-                data: filteredData.map((item) => item.volume),
-                backgroundColor: "#FF3030",
-                borderColor: "#FF3030",
-                type: "bar",
-                yAxisID: "y2",
-            }
-        ]
+    // Custom candlestick implementation using standard chart.js
+    const renderCandlestickChart = () => {
+        return (
+            <div>
+                {/* Line chart for Close price */}
+                <Line
+                    width={800}
+                    height={300}
+                    data={{
+                        labels: filteredData.map((item) => item.date),
+                        datasets: [
+                            {
+                                label: "High-Low Range",
+                                data: filteredData.map((item) => ({
+                                    x: item.date,
+                                    y: [parseFloat(item.low), parseFloat(item.high)]
+                                })),
+                                backgroundColor: "rgba(75, 192, 192, 0.2)",
+                                borderColor: "rgba(75, 192, 192, 1)",
+                                borderWidth: 2,
+                                pointStyle: 'line',
+                                pointRadius: 0,
+                                pointHoverRadius: 0,
+                                spanGaps: false,
+                                yAxisID: "y1",
+                            },
+                            {
+                                label: "Open",
+                                data: filteredData.map((item) => parseFloat(item.open)),
+                                backgroundColor: "rgba(54, 162, 235, 0.7)",
+                                borderColor: "rgba(54, 162, 235, 1)",
+                                pointStyle: 'circle',
+                                pointRadius: 4,
+                                yAxisID: "y1",
+                            },
+                            {
+                                label: "Close",
+                                data: filteredData.map((item) => parseFloat(item.close)),
+                                backgroundColor: "rgba(255, 99, 132, 0.7)",
+                                borderColor: "rgba(255, 99, 132, 1)",
+                                pointStyle: 'star',
+                                pointRadius: 4,
+                                yAxisID: "y1",
+                            }
+                        ]
+                    }}
+                    options={{
+                        ...chartOptions,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const index = context.dataIndex;
+                                        const datapoint = filteredData[index];
+                                        return [
+                                            `Date: ${datapoint.date}`,
+                                            `Open: ${datapoint.open}`,
+                                            `High: ${datapoint.high}`,
+                                            `Low: ${datapoint.low}`,
+                                            `Close: ${datapoint.close}`,
+                                            `Volume: ${datapoint.volume}`
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }}
+                />
+                {/* Volume as separate bar chart below */}
+                <Bar
+                    width={800}
+                    height={100}
+                    data={{
+                        labels: filteredData.map((item) => item.date),
+                        datasets: [
+                            {
+                                label: "Volume",
+                                data: filteredData.map((item) => item.volume),
+                                backgroundColor: filteredData.map(item =>
+                                    parseFloat(item.close) > parseFloat(item.open)
+                                        ? "rgba(38, 166, 154, 0.7)" // Green for bullish
+                                        : "rgba(239, 83, 80, 0.7)"  // Red for bearish
+                                ),
+                            }
+                        ]
+                    }}
+                    options={{
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: (value) => value.toLocaleString()
+                                },
+                                title: {
+                                    display: true,
+                                    text: "Volume"
+                                }
+                            }
+                        }
+                    }}
+                />
+            </div>
+        );
     };
 
     const chartOptions = {
@@ -407,34 +478,10 @@ function App() {
                         options={chartOptions}
                     />
                 ) : (
-                    <Line
-                        width={800}
-                        height={200}
-                        data={candlestickData}
-                        options={{
-                            ...chartOptions,
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: function (context) {
-                                            const dataPoint = context.raw;
-                                            if (dataPoint && typeof dataPoint === 'object' && 'o' in dataPoint) {
-                                                return [
-                                                    `Open: ${dataPoint.o}`,
-                                                    `High: ${dataPoint.h}`,
-                                                    `Low: ${dataPoint.l}`,
-                                                    `Close: ${dataPoint.c}`
-                                                ];
-                                            }
-                                            return context.dataset.label + ': ' + context.formattedValue;
-                                        }
-                                    }
-                                }
-                            }
-                        }}
-                    />
+                    renderCandlestickChart()
                 )}
             </div>
+
 
             <div >
                 <input
