@@ -11,5 +11,3 @@ All the phases of development did help me learn more about the API calls. I lear
 On the ReactJs side of things, this project helped me understand how keywords like async, fetch, .then etc work. The variables here come with a setter method.
 
 The hardest part however was actually looking for a cloud service to host these. Took me a long time to find something that works with MYSQL and was free and then configuring files to make them work. But finally I got that to work too.
-
-Most of the development process I used a smaller dataset to test features. Switching to the real dataset did reveal some lag issues. I can think of a couple of ways to tackle that but I dont wanna try anything last minute and break the app.
