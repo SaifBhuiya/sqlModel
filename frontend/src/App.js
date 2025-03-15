@@ -10,19 +10,27 @@ import {
     Title,
     Tooltip,
     Legend,
-    BarElement
+    BarElement,
+    CandlestickController,
+    CandlestickElement,
+    OhlcController,
+    OhlcElement
 } from "chart.js";
 
-// Register them
+// Register components
 ChartJS.register(
     CategoryScale,
     LinearScale,
     PointElement,
     LineElement,
+    BarElement,
     Title,
     Tooltip,
     Legend,
-    BarElement
+    CandlestickController,
+    CandlestickElement,
+    OhlcController,
+    OhlcElement
 );
 
 
@@ -31,7 +39,7 @@ function App() {
     const [data, setData] = useState([]); //displayed
     const [originalData, setOGData] = useState([]); //Full original data (not changed)
     const [Chartdata, setChartdata] = useState([]); // Sorted and formatted for chart
-    
+
 
     //Form placeholders
     const [date, setDate] = useState('');
@@ -47,6 +55,7 @@ function App() {
     const [Updateindex, setUpdateindex] = useState(0)
     const [selectedTradeCode, setSelectedTradeCode] = useState("ALL");
     const [tradeCodes, setTradeCodes] = useState([]);
+    const [chartType, setChartType] = useState("line-volume"); // New state for chart type
 
     //dropdown menu
     useEffect(() => {
@@ -62,8 +71,8 @@ function App() {
         const interval = setInterval(fetchTradeCodes, 5000); // Fetch every 5 seconds
         return () => clearInterval(interval); // Cleanup on unmount
     }, []);
-    
-  
+
+
 
     useEffect(() => {
         fetch("https://sqlmodel-production.up.railway.app/stocks")  // Get Data from Flask backend
@@ -80,21 +89,21 @@ function App() {
             .then(response => response.json())
             .then(data => {
                 setChartdata(data)           //Load chart data
-             
+
             })  // Set data directly
             .catch(error => console.error("Error fetching data:", error));
     }, []);
 
     const sendDataToFlask = async () => {
-        
+
         fetch("https://sqlmodel-production.up.railway.app/stocksforGraph")
             .then(response => response.json())
             .then(data => {
                 setChartdata(data)           //Load chart data
 
-            }) 
-            .catch(error => console.error("Error fetching data:", error));            
-        
+            })
+            .catch(error => console.error("Error fetching data:", error));
+
     };
 
 
@@ -135,11 +144,11 @@ function App() {
                 });
         }
         handleClear()
-       
+
     }
 
 
-    const handleSave = async() => {
+    const handleSave = async () => {
 
 
         const Formdata = {
@@ -175,7 +184,7 @@ function App() {
         handleClear()
 
 
-    
+
     }
     const handleClear = () => {
         setUpdateindex(0)
@@ -187,7 +196,7 @@ function App() {
         setOpen(0)
         setClose(0)
         setVolume('0')
-       
+
     }
     const handleUpdate = async () => {
         //update button has been pressed
@@ -203,7 +212,7 @@ function App() {
             close: close,
             volume: volume
         };
-       
+
 
         //call API to handle the update
         fetch("https://sqlmodel-production.up.railway.app/Edit", {
@@ -225,12 +234,12 @@ function App() {
             });
 
         //finally clear the onscreen form
-            handleClear()
-        
+        handleClear()
+
 
     }
     const handleSearch = (e) => {
-        
+
         const searchTerm = e.currentTarget.value.toLowerCase();
 
         // First, reset to the original dataset (use originalData directly)
@@ -248,11 +257,16 @@ function App() {
 
         // Then, update the displayed dataset
         setData(dt);
-        
+
     }
 
     const handleTradeCodeChange = (e) => {
         setSelectedTradeCode(e.target.value);
+    };
+
+    // New handler for chart type change
+    const handleChartTypeChange = (e) => {
+        setChartType(e.target.value);
     };
 
     // Filter chart data based on selected trade code
@@ -260,83 +274,166 @@ function App() {
         ? Chartdata
         : Chartdata.filter(item => item.trade_code === selectedTradeCode);
 
+    // Line-Volume chart configuration
+    const lineChartData = {
+        labels: filteredData.map((item) => item.date),
+        datasets: [
+            {
+                label: "Close",
+                data: filteredData.map((item) => item.close),
+                backgroundColor: "#064ff0",
+                borderColor: "#064ff0",
+                fill: false,
+                yAxisID: "y1",
+            },
+            {
+                label: "Volume",
+                data: filteredData.map((item) => item.volume),
+                backgroundColor: "#FF3030",
+                borderColor: "#FF3030",
+                type: "bar",
+                yAxisID: "y2",
+            },
+        ],
+    };
+
+    // Candlestick chart configuration
+    const candlestickData = {
+        labels: filteredData.map((item) => item.date),
+        datasets: [
+            {
+                label: 'OHLC',
+                data: filteredData.map((item) => ({
+                    o: parseFloat(item.open),
+                    h: parseFloat(item.high),
+                    l: parseFloat(item.low),
+                    c: parseFloat(item.close)
+                })),
+                color: {
+                    up: 'rgba(38, 166, 154, 1)',
+                    down: 'rgba(239, 83, 80, 1)',
+                    unchanged: 'rgba(156, 39, 176, 1)',
+                },
+                yAxisID: "y1",
+            },
+            {
+                label: "Volume",
+                data: filteredData.map((item) => item.volume),
+                backgroundColor: "#FF3030",
+                borderColor: "#FF3030",
+                type: "bar",
+                yAxisID: "y2",
+            }
+        ]
+    };
+
+    const chartOptions = {
+        scales: {
+            y1: {
+                type: "linear",
+                position: "left",
+                ticks: {
+                    beginAtZero: true,
+                    min: 100,
+                    max: 5000,
+                    stepSize: 500,
+                },
+                title: {
+                    display: true,
+                    text: "Price",
+                },
+            },
+            y2: {
+                type: "linear",
+                position: "right",
+                ticks: {
+                    beginAtZero: true,
+                    min: 0,
+                    max: 5_000_000,
+                    stepSize: 1_000_000,
+                    callback: (value) => value.toLocaleString(),
+                },
+                title: {
+                    display: true,
+                    text: "Volume",
+                },
+            },
+        },
+    };
+
     return (
         <div>
             <h1>Stock Market Data</h1>
-            <h2>Trade Code for Graph</h2>
+            <h2>Chart Settings</h2>
 
-            {/* Dropdown inside App.js */}
-            <select value={selectedTradeCode} onChange={handleTradeCodeChange}>
-                <option value="ALL">ALL</option> {/* Default option */}
-                {tradeCodes.map((option, index) => (
-                    <option key={index} value={option}>
-                        {option}
-                    </option>
-                ))}
-            </select>
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                {/* Trade Code Dropdown */}
+                <div>
+                    <label htmlFor="tradeCode">Trade Code: </label>
+                    <select
+                        id="tradeCode"
+                        value={selectedTradeCode}
+                        onChange={handleTradeCodeChange}
+                    >
+                        <option value="ALL">ALL</option>
+                        {tradeCodes.map((option, index) => (
+                            <option key={index} value={option}>
+                                {option}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Chart Type Dropdown */}
+                <div>
+                    <label htmlFor="chartType">Chart Type: </label>
+                    <select
+                        id="chartType"
+                        value={chartType}
+                        onChange={handleChartTypeChange}
+                    >
+                        <option value="line-volume">Line-Volume</option>
+                        <option value="candlestick">Candlestick</option>
+                    </select>
+                </div>
+            </div>
 
             <div>
-                <Line
-                    width={800}
-                    height={200}
-                    data={{
-                        labels: filteredData.map((item) => item.date),
-                        datasets: [
-                            {
-                                label: "Close",
-                                data: filteredData.map((item) => item.close),
-                                backgroundColor: "#064ff0",
-                                borderColor: "#064ff0",
-                                fill: false,
-                                yAxisID: "y1",
-                            },
-                            {
-                                label: "Volume",
-                                data: filteredData.map((item) => item.volume),
-                                backgroundColor: "#FF3030",
-                                borderColor: "#FF3030",
-                                type: "bar",
-                                yAxisID: "y2",
-                            },
-                        ],
-                    }}
-                    options={{
-                        scales: {
-                            y1: {
-                                type: "linear",
-                                position: "left",
-                                ticks: {
-                                    beginAtZero: true,
-                                    min: 100,
-                                    max: 5000,
-                                    stepSize: 500,
-                                },
-                                title: {
-                                    display: true,
-                                    text: "Close Price",
-                                },
-                            },
-                            y2: {
-                                type: "linear",
-                                position: "right",
-                                ticks: {
-                                    beginAtZero: true,
-                                    min: 0,
-                                    max: 5_000_000,
-                                    stepSize: 1_000_000,
-                                    callback: (value) => value.toLocaleString(),
-                                },
-                                title: {
-                                    display: true,
-                                    text: "Volume",
-                                },
-                            },
-                        },
-                    }}
-                />
-
-
-
+                {chartType === 'line-volume' ? (
+                    <Line
+                        width={800}
+                        height={200}
+                        data={lineChartData}
+                        options={chartOptions}
+                    />
+                ) : (
+                    <Line
+                        width={800}
+                        height={200}
+                        data={candlestickData}
+                        options={{
+                            ...chartOptions,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            const dataPoint = context.raw;
+                                            if (dataPoint && typeof dataPoint === 'object' && 'o' in dataPoint) {
+                                                return [
+                                                    `Open: ${dataPoint.o}`,
+                                                    `High: ${dataPoint.h}`,
+                                                    `Low: ${dataPoint.l}`,
+                                                    `Close: ${dataPoint.c}`
+                                                ];
+                                            }
+                                            return context.dataset.label + ': ' + context.formattedValue;
+                                        }
+                                    }
+                                }
+                            }
+                        }}
+                    />
+                )}
             </div>
 
             <div >
