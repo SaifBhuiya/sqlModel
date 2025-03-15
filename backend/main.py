@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import text
 
-# Load environment variables from Railway (if running in Railway)
+# Load environment variables from Railway
 load_dotenv()
 
 app = Flask(__name__)
@@ -24,7 +24,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-
+#test connection between database and backend
 @app.route('/test-db')
 def test_db():
     try:
@@ -39,7 +39,7 @@ def get_stocks():
     stocks = fetch_stocks()  # Reuse the function
     return jsonify(stocks)
 
-
+#Retrieve sorted data (Date) for graph
 @app.route('/stocksforGraph', methods = ['GET'])
 def get_stocksforgraph():
     with db.engine.connect() as connection:
@@ -55,7 +55,7 @@ def get_stocksforgraph():
 
     return jsonify(stocks)
 
-
+#Update stocks
 @app.route('/Edit', methods=['PUT'])
 def edit_stocks():
     data = request.json
@@ -109,7 +109,7 @@ def edit_stocks():
         return jsonify(stocks)
 
 
-
+#Create new Row
 @app.route('/Create', methods=['POST'])
 def create_data():
         data = request.json
@@ -129,7 +129,7 @@ def create_data():
             stocks = fetch_stocks()  # Reuse the function
             return jsonify(stocks)
 
-
+#Delete a row
 @app.route('/Delete', methods=['DELETE'])
 def delete_data():
     id = request.args.get("id", type=int)  # Get index from URL parameter
@@ -158,7 +158,8 @@ def delete_data():
         return jsonify(stocks)
 
 
-#Used for dropdownmenu
+#Used for drop-down menu of graph
+#retrieve all unique trade codes
 @app.route('/get_trade_codes', methods=['GET'])
 def get_trade_codes():
     with db.engine.connect() as connection:
@@ -168,7 +169,7 @@ def get_trade_codes():
 
 
 
-
+#normal data retrieval
 def fetch_stocks():
     with db.engine.connect() as connection:
         result = connection.execute(text("SELECT * FROM stock_market_data"))

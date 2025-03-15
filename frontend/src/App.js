@@ -13,7 +13,6 @@ import {
     BarElement
 } from "chart.js";
 
-// Register them
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -29,11 +28,11 @@ ChartJS.register(
 function App() {
     //SQL Data 
     const [data, setData] = useState([]); //displayed
-    const [originalData, setOGData] = useState([]); //Full original data (not changed)
+    const [originalData, setOGData] = useState([]); //Full original data (used for search) 
     const [Chartdata, setChartdata] = useState([]); // Sorted and formatted for chart
     
 
-    //Form placeholders
+    //Form placeholders for update
     const [date, setDate] = useState('');
     const [trade_code, setTrade_code] = useState('')
     const [high, setHigh] = useState('')
@@ -48,7 +47,7 @@ function App() {
     const [selectedTradeCode, setSelectedTradeCode] = useState("ALL");
     const [tradeCodes, setTradeCodes] = useState([]);
 
-    //dropdown menu
+    //dropdown menu update for graph
     useEffect(() => {
         const fetchTradeCodes = () => {
             fetch("https://sqlmodel-production.up.railway.app/get_trade_codes")
@@ -64,7 +63,7 @@ function App() {
     }, []);
     
   
-
+    //initial data load 
     useEffect(() => {
         fetch("https://sqlmodel-production.up.railway.app/stocks")  // Get Data from Flask backend
             .then(response => response.json())
@@ -75,6 +74,7 @@ function App() {
             .catch(error => console.error("Error fetching data:", error));
     }, []);
 
+    //initial chart data load
     useEffect(() => {
         fetch("https://sqlmodel-production.up.railway.app/stocksforGraph")  // Get Data from Flask backend for chart
             .then(response => response.json())
@@ -85,6 +85,8 @@ function App() {
             .catch(error => console.error("Error fetching data:", error));
     }, []);
 
+
+    //function to update chartData
     const sendDataToFlask = async () => {
         
         fetch("https://sqlmodel-production.up.railway.app/stocksforGraph")
@@ -99,7 +101,7 @@ function App() {
 
 
 
-
+    // On Edit clicked (fill form with data)
     const handleEdit = (id) => {
         const dt = data.filter((item) => item.id === id);//find row using index
 
@@ -117,6 +119,7 @@ function App() {
         }
     }
 
+    //On delete clicked
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this?")) {
             fetch(`https://sqlmodel-production.up.railway.app/Delete?id=${id}`, {
@@ -138,10 +141,10 @@ function App() {
        
     }
 
-
+    //Create new entry
     const handleSave = async() => {
 
-
+        // Row values for new entry 
         const Formdata = {
             index: Updateindex,
             date: date,
@@ -164,8 +167,8 @@ function App() {
             .then(data => {
                 console.log("Update successful:", data);
                 setData(data)           //Load to display
-                setOGData(data)
-                sendDataToFlask()
+                setOGData(data)         //load for search
+                sendDataToFlask()       //load for chart
             })
             .catch(error => {
                 console.error("Error updating:", error);
@@ -177,6 +180,8 @@ function App() {
 
     
     }
+
+    //On clear clicked
     const handleClear = () => {
         setUpdateindex(0)
         setIsUpdate(false)
@@ -189,10 +194,11 @@ function App() {
         setVolume('0')
        
     }
-    const handleUpdate = async () => {
-        //update button has been pressed
 
-        //create the array to send
+    //If update is clicked after "Edit"
+    const handleUpdate = async () => {
+      
+        //create the row to send
         const Formdata = {
             index: Updateindex,
             date: date,
@@ -229,6 +235,8 @@ function App() {
         
 
     }
+
+    //Typing in search bar
     const handleSearch = (e) => {
         
         const searchTerm = e.currentTarget.value.toLowerCase();
@@ -251,6 +259,7 @@ function App() {
         
     }
 
+    //Dropdown option changed
     const handleTradeCodeChange = (e) => {
         setSelectedTradeCode(e.target.value);
     };
@@ -265,9 +274,9 @@ function App() {
             <h1>Stock Market Data</h1>
             <h2>Trade Code for Graph</h2>
 
-            {/* Dropdown inside App.js */}
+            {/* Dropdown menu for trade_code */}
             <select value={selectedTradeCode} onChange={handleTradeCodeChange}>
-                <option value="ALL">ALL</option> {/* Default option */}
+                <option value="ALL">ALL</option> {/* Default option "All" */}
                 {tradeCodes.map((option, index) => (
                     <option key={index} value={option}>
                         {option}
@@ -348,7 +357,7 @@ function App() {
                     onChange={handleSearch}
                 />
             </div>
-
+            {/* Form input */}
             <div className="form">
                 <div>
                     <label>
@@ -392,8 +401,9 @@ function App() {
                         <input type='double' placeholder='Enter value of Volume' onChange={(e) => setVolume(e.target.value)} value={volume} />
                     </label>
                 </div>
+                {/* determine whether to display save or update button */}
                 <div>
-                    {
+                    {   
                         !isUpdate ? 
                             <button onClick={() => handleSave()}>Save</button> 
                             :
@@ -407,7 +417,7 @@ function App() {
 
             </div>
 
-
+            {/* table */}
             <table border="1">
                 <thead>
                     <tr>
