@@ -43,7 +43,7 @@ def get_stocks():
 @app.route('/stocksforGraph', methods = ['GET'])
 def get_stocksforgraph():
     with db.engine.connect() as connection:
-        result = connection.execute(text("SELECT * FROM stock_market_data ORDER BY date ASC"))  # Sort by date
+        result = connection.execute(text("SELECT * FROM test ORDER BY date ASC"))  # Sort by date
         stocks = [
             {
                 **dict(row),
@@ -61,7 +61,7 @@ def edit_stocks():
     data = request.json
     with db.engine.connect() as connection:
         id = data.get("index", 0)
-        result = connection.execute(text("SELECT * FROM stock_market_data "
+        result = connection.execute(text("SELECT * FROM test "
                                          "WHERE id = :id"), {"id": id})
 
         row = result.fetchone()
@@ -77,7 +77,7 @@ def edit_stocks():
         volume_match = row_dict.get('volume')
 
         update = connection.execute(text(
-                                         "UPDATE stock_market_data "
+                                         "UPDATE test "
                                          "SET "
                                          "date = :ndate, "
                                          "trade_code = :ntrade_code, "
@@ -114,7 +114,7 @@ def edit_stocks():
 def create_data():
         data = request.json
         with db.engine.connect() as connection:
-            result = connection.execute(text("INSERT INTO stock_market_data (date, trade_code, high, low, open, close, volume)"
+            result = connection.execute(text("INSERT INTO test (date, trade_code, high, low, open, close, volume)"
                                              "VALUES (:date, :trade_code, :high, :low, :open, :close, :volume)"
                                              ),{
             "date": data.get("date"),
@@ -136,7 +136,7 @@ def delete_data():
 
     with db.engine.connect() as connection:
         #Find all columns of the Row which we want to delete
-        result = connection.execute(text("SELECT * FROM stock_market_data "
+        result = connection.execute(text("SELECT * FROM test "
                                          "WHERE id = :id"), {"id": id})
         row = result.fetchone()
         row_dict = dict(row._mapping)
@@ -150,7 +150,7 @@ def delete_data():
         close_match = row_dict.get('close')
         volume_match = row_dict.get('volume')
 
-        delete = connection.execute(text("DELETE FROM stock_market_data WHERE  "
+        delete = connection.execute(text("DELETE FROM test WHERE  "
                                          "id = :id"),{"id": id})
         connection.commit()
 
@@ -163,7 +163,7 @@ def delete_data():
 @app.route('/get_trade_codes', methods=['GET'])
 def get_trade_codes():
     with db.engine.connect() as connection:
-        result = connection.execute(text("SELECT DISTINCT trade_code FROM stock_market_data"))
+        result = connection.execute(text("SELECT DISTINCT trade_code FROM test"))
         trade_codes = [row[0] for row in result]  # Extract values from result
     return jsonify(trade_codes)
 
@@ -172,7 +172,7 @@ def get_trade_codes():
 #normal data retrieval
 def fetch_stocks():
     with db.engine.connect() as connection:
-        result = connection.execute(text("SELECT * FROM stock_market_data"))
+        result = connection.execute(text("SELECT * FROM test"))
 
         stocks = [
             {
